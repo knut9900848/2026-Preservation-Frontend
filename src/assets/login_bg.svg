@@ -1,0 +1,30 @@
+<svg
+  width="100%"
+  height="100%"
+  viewBox="0 0 1440 900"
+  xmlns="http://www.w3.org/2000/svg"
+  preserveAspectRatio="xMidYMid slice"
+>
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="50%" stop-color="#1e3a8a" />
+      <stop offset="100%" stop-color="#312e81" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1440" height="900" fill="url(#bgGradient)" />
+
+  <!-- Wave 1 -->
+  <path
+    d="M0,600 C240,550 480,650 720,620 960,590 1200,500 1440,520 L1440,900 L0,900 Z"
+    fill="rgba(255,255,255,0.05)"
+  />
+
+  <!-- Wave 2 -->
+  <path
+    d="M0,680 C300,720 540,650 780,670 1020,690 1200,760 1440,740 L1440,900 L0,900 Z"
+    fill="rgba(255,255,255,0.03)"
+  />
+</svg>
