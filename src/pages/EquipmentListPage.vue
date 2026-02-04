@@ -114,7 +114,7 @@
 import { ref, onMounted, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { api } from 'boot/axios';
-import EquipmentCheckSheets from './EquipmentChecksheetsPage.vue';
+import EquipmentCheckSheets from './EquipmentChecksheetListPage.vue';
 import EquipmentActivitiesPage from './EquipmentActivitiesPage.vue';
 
 interface Equipment {

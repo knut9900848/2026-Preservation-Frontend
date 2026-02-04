@@ -10,21 +10,41 @@
         <div class="row q-col-gutter-md">
           <!-- Search -->
           <div class="col-12 col-md-3">
-            <q-input v-model="filters.search" outlined dense placeholder="Search checksheets..." debounce="500"
-              @update:model-value="fetchChecksheets">
+            <q-input
+              v-model="filters.search"
+              outlined
+              dense
+              placeholder="Search checksheets..."
+              debounce="500"
+              @update:model-value="fetchChecksheets"
+            >
               <template v-slot:prepend>
                 <q-icon name="search" />
               </template>
               <template v-slot:append v-if="filters.search">
-                <q-icon name="clear" class="cursor-pointer" @click="filters.search = ''; fetchChecksheets()" />
+                <q-icon
+                  name="clear"
+                  class="cursor-pointer"
+                  @click="
+                    filters.search = '';
+                    fetchChecksheets();
+                  "
+                />
               </template>
             </q-input>
           </div>
 
           <!-- Status Filter -->
           <div class="col-12 col-md-2">
-            <q-select v-model="filters.status" outlined dense :options="statusOptions" label="Status" clearable
-              @update:model-value="fetchChecksheets">
+            <q-select
+              v-model="filters.status"
+              outlined
+              dense
+              :options="statusOptions"
+              label="Status"
+              clearable
+              @update:model-value="fetchChecksheets"
+            >
               <template v-slot:prepend>
                 <q-icon name="filter_list" />
               </template>
@@ -33,8 +53,15 @@
 
           <!-- Round Filter -->
           <div class="col-12 col-md-2">
-            <q-input v-model.number="filters.current_round" outlined dense type="number" label="Round" clearable
-              @update:model-value="fetchChecksheets">
+            <q-input
+              v-model.number="filters.current_round"
+              outlined
+              dense
+              type="number"
+              label="Round"
+              clearable
+              @update:model-value="fetchChecksheets"
+            >
               <template v-slot:prepend>
                 <q-icon name="replay" />
               </template>
@@ -43,17 +70,28 @@
 
           <!-- Equipment Filter -->
           <div class="col-12 col-md-3">
-            <q-select v-model="filters.equipment_id" outlined dense :options="equipmentOptions" option-value="id"
-              option-label="name" emit-value map-options label="Equipment" clearable use-input input-debounce="300"
-              @filter="filterEquipment" @update:model-value="fetchChecksheets">
+            <q-select
+              v-model="filters.equipment_id"
+              outlined
+              dense
+              :options="equipmentOptions"
+              option-value="id"
+              option-label="name"
+              emit-value
+              map-options
+              label="Equipment"
+              clearable
+              use-input
+              input-debounce="300"
+              @filter="filterEquipment"
+              @update:model-value="fetchChecksheets"
+            >
               <template v-slot:prepend>
                 <q-icon name="precision_manufacturing" />
               </template>
               <template v-slot:no-option>
                 <q-item>
-                  <q-item-section class="text-grey">
-                    No equipment found
-                  </q-item-section>
+                  <q-item-section class="text-grey"> No equipment found </q-item-section>
                 </q-item>
               </template>
             </q-select>
@@ -61,8 +99,15 @@
 
           <!-- Activity Filter -->
           <div class="col-12 col-md-2">
-            <q-input v-model.number="filters.activity_id" outlined dense type="number" label="Activity ID" clearable
-              @update:model-value="fetchChecksheets">
+            <q-input
+              v-model.number="filters.activity_id"
+              outlined
+              dense
+              type="number"
+              label="Activity ID"
+              clearable
+              @update:model-value="fetchChecksheets"
+            >
               <template v-slot:prepend>
                 <q-icon name="assignment" />
               </template>
@@ -71,8 +116,15 @@
 
           <!-- Over Due Filter -->
           <div class="col-12 col-md-2">
-            <q-select v-model="filters.over_due" outlined dense :options="overDueOptions" label="Over Due" clearable
-              @update:model-value="fetchChecksheets">
+            <q-select
+              v-model="filters.over_due"
+              outlined
+              dense
+              :options="overDueOptions"
+              label="Over Due"
+              clearable
+              @update:model-value="fetchChecksheets"
+            >
               <template v-slot:prepend>
                 <q-icon name="event_busy" />
               </template>
@@ -82,18 +134,39 @@
 
         <!-- Clear All Filters -->
         <div class="row q-mt-sm">
-          <q-btn flat dense color="primary" icon="clear_all" label="Clear All Filters" @click="clearFilters" />
+          <q-btn
+            flat
+            dense
+            color="primary"
+            icon="clear_all"
+            label="Clear All Filters"
+            @click="clearFilters"
+          />
         </div>
       </q-card-section>
     </q-card>
 
     <!-- Checksheet Table -->
-    <q-table :rows="checksheets" :columns="columns" row-key="id" :loading="loading" bordered flat
-      table-header-style="background-color: #007bff; color: #fff; font-weight: bold" separator="cell" color="primary"
-      square :pagination="pagination" @request="onRequest">
+    <q-table
+      :rows="checksheets"
+      :columns="columns"
+      row-key="id"
+      :loading="loading"
+      bordered
+      flat
+      table-header-style="background-color: #007bff; color: #fff; font-weight: bold"
+      separator="cell"
+      color="primary"
+      square
+      :pagination="pagination"
+      @request="onRequest"
+    >
       <template v-slot:body-cell-sheet_number="props">
         <q-td :props="props">
-          <div class="text-primary text-weight-medium cursor-pointer" @click="openChecksheetDialog(props.row)">
+          <div
+            class="text-primary text-weight-medium cursor-pointer"
+            @click="openChecksheetDialog(props.row)"
+          >
             {{ props.row.sheet_number }}
           </div>
         </q-td>
@@ -140,9 +213,7 @@
 
       <template v-slot:body-cell-over_due="props">
         <q-td :props="props">
-          <q-badge v-if="isOverDue(props.row)" color="negative">
-            Y
-          </q-badge>
+          <q-badge v-if="isOverDue(props.row)" color="negative"> Y </q-badge>
           <div v-else class="text-grey-6">-</div>
         </q-td>
       </template>
@@ -150,11 +221,24 @@
       <template v-slot:body-cell-technicians="props">
         <q-td :props="props">
           <div v-if="props.row.technicians && props.row.technicians.length > 0">
-            <q-chip v-for="tech in props.row.technicians.slice(0, 2)" :key="tech.id" size="sm" color="primary"
-              text-color="white" icon="person" clickable @click="openUserInfoDialog(tech.id)">
+            <q-chip
+              v-for="tech in props.row.technicians.slice(0, 2)"
+              :key="tech.id"
+              size="sm"
+              color="primary"
+              text-color="white"
+              icon="person"
+              clickable
+              @click="openUserInfoDialog(tech.id)"
+            >
               {{ tech.name }}
             </q-chip>
-            <q-chip v-if="props.row.technicians.length > 2" size="sm" color="grey-5" text-color="white">
+            <q-chip
+              v-if="props.row.technicians.length > 2"
+              size="sm"
+              color="grey-5"
+              text-color="white"
+            >
               +{{ props.row.technicians.length - 2 }}
             </q-chip>
           </div>
@@ -165,11 +249,24 @@
       <template v-slot:body-cell-inspectors="props">
         <q-td :props="props">
           <div v-if="props.row.inspectors && props.row.inspectors.length > 0">
-            <q-chip v-for="inspector in props.row.inspectors.slice(0, 2)" :key="inspector.id" size="sm"
-              color="secondary" text-color="white" icon="person" clickable @click="openUserInfoDialog(inspector.id)">
+            <q-chip
+              v-for="inspector in props.row.inspectors.slice(0, 2)"
+              :key="inspector.id"
+              size="sm"
+              color="secondary"
+              text-color="white"
+              icon="person"
+              clickable
+              @click="openUserInfoDialog(inspector.id)"
+            >
               {{ inspector.name }}
             </q-chip>
-            <q-chip v-if="props.row.inspectors.length > 2" size="sm" color="grey-5" text-color="white">
+            <q-chip
+              v-if="props.row.inspectors.length > 2"
+              size="sm"
+              color="grey-5"
+              text-color="white"
+            >
               +{{ props.row.inspectors.length - 2 }}
             </q-chip>
           </div>
@@ -179,7 +276,13 @@
 
       <template v-slot:body-cell-actions="props">
         <q-td :props="props">
-          <q-btn flat color="primary" icon="visibility" size="sm" @click="openChecksheetDialog(props.row)">
+          <q-btn
+            flat
+            color="primary"
+            icon="visibility"
+            size="sm"
+            @click="openChecksheetDialog(props.row)"
+          >
             <q-tooltip>View Details</q-tooltip>
           </q-btn>
           <q-btn flat color="info" icon="history" size="sm" @click="openHistoryDialog(props.row)">
@@ -190,12 +293,18 @@
     </q-table>
 
     <!-- Checksheet Items Dialog -->
-    <ChecksheetItemsPage v-model="showChecksheetDialog" :checksheet="selectedChecksheet"
-      @status-changed="fetchChecksheets" />
+    <ChecksheetItemsPage
+      v-model="showChecksheetDialog"
+      :checksheet="selectedChecksheet"
+      @status-changed="fetchChecksheets"
+    />
 
     <!-- Checksheet History Dialog -->
-    <ChecksheetHistory v-model="showHistoryDialog" :equipment-id="null"
-      :checksheet-id="selectedChecksheet?.id ?? null" />
+    <ChecksheetHistory
+      v-model="showHistoryDialog"
+      :equipment-id="null"
+      :checksheet-id="selectedChecksheet?.id ?? null"
+    />
 
     <!-- User Info Dialog -->
     <UserInfoDialog v-model="showUserInfoDialog" :user-id="selectedUserId" />
@@ -437,9 +546,7 @@ const filterEquipment = (val: string, update: (fn: () => void) => void) => {
     } else {
       const needle = val.toLowerCase();
       equipmentOptions.value = allEquipment.value.filter(
-        (eq) =>
-          eq.name.toLowerCase().includes(needle) ||
-          eq.tag_no.toLowerCase().includes(needle)
+        (eq) => eq.name.toLowerCase().includes(needle) || eq.tag_no.toLowerCase().includes(needle),
       );
     }
   });

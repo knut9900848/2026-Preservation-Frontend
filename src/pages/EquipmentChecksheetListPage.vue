@@ -36,7 +36,7 @@
       </q-table>
     </q-card-section>
 
-    <EquipmentChecksheetItemsPage v-model="showItemsDialog" :equipment="equipment" :checksheet="selectedChecksheet"
+    <ChecksheetItemsPage v-model="showItemsDialog" :checksheet="selectedChecksheet"
       @status-changed="fetchChecksheets" />
   </q-card>
 </template>e2
@@ -45,7 +45,7 @@
 import { ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { api } from 'boot/axios';
-import EquipmentChecksheetItemsPage from './EquipmentChecksheetItemsPage.vue';
+import ChecksheetItemsPage from './ChecksheetItemsPage.vue';
 
 interface Equipment {
   id: number;
