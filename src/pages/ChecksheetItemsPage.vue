@@ -24,11 +24,11 @@
         <!-- Checksheet Information Grid -->
         <div class="row q-col-gutter-md">
           <!-- Project -->
-          <div class="col-12 col-md-3">
+          <div class="col-lg-3 col-md-4 col-sm-6">
             <q-input label="Project" model-value="" outlined dense readonly />
           </div>
           <!-- Equipment Name -->
-          <div class="col-12 col-md-3">
+          <div class="col-lg-3 col-md-4 col-sm-6">
             <q-input
               label="Equipment Name"
               :model-value="checksheet?.equipment?.name ?? 'N/A'"
@@ -38,7 +38,7 @@
             />
           </div>
           <!-- Activity Code -->
-          <div class="col-12 col-md-3">
+          <div class="col-lg-3 col-md-4 col-sm-6">
             <q-input
               label="Activity Code"
               :model-value="checksheet?.activity_code || 'N/A'"
@@ -48,7 +48,7 @@
             />
           </div>
           <!-- Tag Number -->
-          <div class="col-12 col-md-3">
+          <div class="col-lg-3 col-md-4 col-sm-6">
             <q-input
               label="Tag Number"
               :model-value="checksheet?.equipment?.tag_no ?? 'N/A'"
@@ -57,13 +57,9 @@
               readonly
             />
           </div>
-        </div>
 
-        <q-separator class="q-ma-sm" />
-
-        <div class="row q-col-gutter-md">
           <!-- Round -->
-          <div class="col-12 col-md-3">
+          <div class="col-lg-3 col-md-4 col-sm-6">
             <q-input
               label="Round"
               :model-value="checksheet?.current_round || 'N/A'"
@@ -73,7 +69,7 @@
             />
           </div>
           <!-- Frequency -->
-          <div class="col-12 col-md-3">
+          <div class="col-lg-3 col-md-4 col-sm-6">
             <q-input
               label="Frequency"
               :model-value="checksheet?.frequency || 'N/A'"
@@ -83,11 +79,11 @@
             />
           </div>
           <!-- Status -->
-          <div class="col-12 col-md-3">
+          <div class="col-lg-3 col-md-4 col-sm-6">
             <q-input label="Status" :model-value="currentStatus" outlined dense readonly />
           </div>
           <!-- Due Date -->
-          <div class="col-12 col-md-3">
+          <div class="col-lg-3 col-md-4 col-sm-6">
             <q-input label="Due Date" v-model="dueDate" outlined dense readonly>
               <template v-slot:append>
                 <q-icon
@@ -118,7 +114,7 @@
 
       <q-card-section>
         <div class="row">
-          <div class="col-12 col-md-9">
+          <div class="col-12 col-lg-9">
             <q-table
               :rows="items"
               :columns="columns"
@@ -152,13 +148,6 @@
                   <q-radio
                     v-model="props.row.status"
                     :val="2"
-                    label="HD"
-                    color="warning"
-                    :disable="currentStatus?.toLowerCase() !== 'draft'"
-                  />
-                  <q-radio
-                    v-model="props.row.status"
-                    :val="3"
                     label="N/A"
                     color="grey"
                     :disable="currentStatus?.toLowerCase() !== 'draft'"
@@ -178,10 +167,6 @@
                     <q-icon name="warning" size="xs" class="q-mr-xs" />
                     AR - Action Required
                   </q-badge>
-                  <q-badge color="warning" text-color="dark" rounded class="q-pa-sm">
-                    <q-icon name="pause_circle" size="xs" class="q-mr-xs" />
-                    HD - Holding
-                  </q-badge>
                   <q-badge color="grey" rounded class="q-pa-sm">
                     <q-icon name="remove_circle" size="xs" class="q-mr-xs" />
                     N/A - Not Applicable
@@ -193,7 +178,7 @@
             <q-separator class="q-mb-md" />
 
             <!-- Workflow Process -->
-            <WorkflowProcess
+            <ChecksheetWorkflowProcess
               ref="workflowRef"
               :checksheet-id="checksheet?.id ?? null"
               :initial-step="workflowStep"
@@ -205,105 +190,20 @@
               @close-dialog="showDialog = false"
             />
 
-            <div class="photo q-mt-md">
-              <div class="text-h6 q-mb-md">Attachments</div>
-
-              <!-- Upload Area -->
-              <div class="q-mb-md">
-                <q-file
-                  v-model="uploadFiles"
-                  outlined
-                  dense
-                  multiple
-                  accept="image/*"
-                  label="Select images to upload"
-                  @update:model-value="handleFileSelect"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="attach_file" />
-                  </template>
-                  <template v-slot:append>
-                    <q-btn
-                      flat
-                      dense
-                      icon="cloud_upload"
-                      color="primary"
-                      :disable="!uploadFiles || uploadFiles.length === 0"
-                      @click="uploadPhotos"
-                      :loading="uploading"
-                    >
-                      <q-tooltip>Upload</q-tooltip>
-                    </q-btn>
-                  </template>
-                </q-file>
-              </div>
-
-              <!-- Photo Gallery -->
-              <div v-if="photos.length > 0" class="row q-col-gutter-md">
-                <div
-                  v-for="photo in photos"
-                  :key="photo.id"
-                  class="col-12 col-sm-6 col-md-4 col-lg-3"
-                >
-                  <q-card flat bordered>
-                    <q-img
-                      :src="photo.url"
-                      :ratio="4 / 3"
-                      fit="cover"
-                      class="cursor-pointer"
-                      @click="openPhotoPreview(photo)"
-                    >
-                      <template v-slot:loading>
-                        <q-spinner color="primary" size="50px" />
-                      </template>
-                    </q-img>
-                    <q-card-section class="q-pa-sm">
-                      <div class="text-caption text-grey-7">{{ photo.filename }}</div>
-                      <div class="text-caption text-grey-6">{{ formatFileSize(photo.size) }}</div>
-                    </q-card-section>
-                    <q-card-actions align="right" class="q-pa-sm">
-                      <q-btn
-                        flat
-                        dense
-                        icon="download"
-                        color="primary"
-                        size="sm"
-                        @click="downloadPhoto(photo)"
-                      >
-                        <q-tooltip>Download</q-tooltip>
-                      </q-btn>
-                      <q-btn
-                        flat
-                        dense
-                        icon="delete"
-                        color="negative"
-                        size="sm"
-                        @click="deletePhoto(photo)"
-                      >
-                        <q-tooltip>Delete</q-tooltip>
-                      </q-btn>
-                    </q-card-actions>
-                  </q-card>
-                </div>
-              </div>
-
-              <!-- Empty State -->
-              <div v-else class="text-center q-pa-lg text-grey-6">
-                <q-icon name="photo_library" size="64px" color="grey-5" />
-                <div class="text-body1 q-mt-md">No photos uploaded yet</div>
-                <div class="text-caption">Upload images to attach them to this checksheet</div>
-              </div>
-            </div>
+            <ChecksheetPhoto
+              :checksheet-id="checksheet?.id ?? null"
+              :disabled="currentStatus?.toLowerCase() !== 'draft'"
+            />
           </div>
-          <div class="col-12 col-md-3 q-pl-md">
-            <AssignTechnician
+          <div class="col-12 col-lg-3 q-pl-md">
+            <ChecksheetAssignTechnician
               ref="technicianRef"
               :checksheet-id="checksheet?.id ?? null"
               :initial-users="assignedTechnicians"
               @user-click="openUserInfoDialog"
               @updated="(users) => (assignedTechnicians = users)"
             />
-            <AssignInspector
+            <ChecksheetAssignInspector
               ref="inspectorRef"
               :checksheet-id="checksheet?.id ?? null"
               :initial-users="assignedInspectors"
@@ -348,35 +248,6 @@
       </q-card-section>
     </q-card>
 
-    <!-- Photo Preview Dialog -->
-    <q-dialog v-model="showPhotoPreview">
-      <q-card style="min-width: 600px; max-width: 90vw">
-        <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6">{{ selectedPhoto?.filename }}</div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
-        </q-card-section>
-
-        <q-card-section>
-          <q-img
-            v-if="selectedPhoto"
-            :src="selectedPhoto.url"
-            fit="contain"
-            style="max-height: 70vh"
-          >
-            <template v-slot:loading>
-              <q-spinner color="primary" size="50px" />
-            </template>
-          </q-img>
-        </q-card-section>
-
-        <q-card-actions align="right">
-          <q-btn label="Download" color="primary" flat @click="downloadPhoto(selectedPhoto!)" />
-          <q-btn label="Close" color="grey" flat v-close-popup />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
     <!-- Checksheet History Dialog -->
     <ChecksheetHistory
       v-model="showHistoryDialog"
@@ -397,9 +268,10 @@ import { useAuthStore } from 'stores/auth';
 import ChecksheetComments from 'components/ChecksheetComments.vue';
 import ChecksheetHistory from 'components/ChecksheetHistory.vue';
 import UserInfoDialog from 'components/UserInfoDialog.vue';
-import AssignTechnician from 'components/AssignTechnician.vue';
-import AssignInspector from 'components/AssignInspector.vue';
-import WorkflowProcess from 'components/WorkflowProcess.vue';
+import ChecksheetAssignTechnician from 'components/ChecksheetAssignTechnician.vue';
+import ChecksheetAssignInspector from 'components/ChecksheetAssignInspector.vue';
+import ChecksheetWorkflowProcess from 'components/ChecksheetWorkflowProcess.vue';
+import ChecksheetPhoto from 'components/ChecksheetPhoto.vue';
 
 const authStore = useAuthStore();
 
@@ -440,14 +312,6 @@ interface ChecksheetItem {
   order: number;
 }
 
-interface Photo {
-  id: number;
-  filename: string;
-  url: string;
-  size: number;
-  uploaded_at?: string;
-}
-
 interface Props {
   checksheet: Checksheet | null;
   modelValue: boolean;
@@ -478,17 +342,10 @@ const showUserInfoDialog = ref(false);
 const selectedUserId = ref<number | null>(null);
 const dueDate = ref<string>('');
 
-// Photo upload related
-const photos = ref<Photo[]>([]);
-const uploadFiles = ref<File[] | null>(null);
-const uploading = ref(false);
-const showPhotoPreview = ref(false);
-const selectedPhoto = ref<Photo | null>(null);
-
 // Workflow related
 const workflowStep = ref<number>(1);
 const currentStatus = ref<string>('N/A');
-const workflowRef = ref<InstanceType<typeof WorkflowProcess> | null>(null);
+const workflowRef = ref<InstanceType<typeof ChecksheetWorkflowProcess> | null>(null);
 
 const handleStepChanged = (payload: { step: number; status: string }) => {
   workflowStep.value = payload.step;
@@ -644,115 +501,6 @@ const generateReport = async () => {
       position: 'bottom',
     });
   }
-};
-
-const handleFileSelect = () => {
-  // File selected
-};
-
-const uploadPhotos = async () => {
-  if (!uploadFiles.value || uploadFiles.value.length === 0) return;
-  if (!props.checksheet?.id) return;
-
-  uploading.value = true;
-
-  try {
-    const formData = new FormData();
-    uploadFiles.value.forEach((file) => {
-      formData.append('photos[]', file);
-    });
-
-    const response = await api.post(`${getBaseApiUrl()}/photos`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-
-    if (response.data.photos) {
-      photos.value.push(...response.data.photos);
-    }
-
-    $q.notify({
-      type: 'positive',
-      message: `${uploadFiles.value.length} photo(s) uploaded successfully`,
-      position: 'bottom',
-    });
-
-    uploadFiles.value = null;
-  } catch (error: unknown) {
-    const err = error as { response?: { data?: { message?: string } } };
-    $q.notify({
-      type: 'negative',
-      message: err.response?.data?.message || 'Failed to upload photos',
-      position: 'bottom',
-    });
-  } finally {
-    uploading.value = false;
-  }
-};
-
-const openPhotoPreview = (photo: Photo) => {
-  selectedPhoto.value = photo;
-  showPhotoPreview.value = true;
-};
-
-const downloadPhoto = (photo: Photo) => {
-  if (!photo) return;
-
-  const link = document.createElement('a');
-  link.href = photo.url;
-  link.download = photo.filename;
-  link.target = '_blank';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-
-  $q.notify({
-    type: 'positive',
-    message: 'Download started',
-    position: 'bottom',
-    timeout: 1000,
-  });
-};
-
-const deletePhoto = (photo: Photo) => {
-  $q.dialog({
-    title: 'Confirm Delete',
-    message: `Are you sure you want to delete "${photo.filename}"?`,
-    cancel: true,
-    persistent: true,
-  }).onOk(() => {
-    void (async () => {
-      if (!props.checksheet?.id) return;
-
-      try {
-        await api.delete(`${getBaseApiUrl()}/photos/${photo.id}`);
-
-        photos.value = photos.value.filter((p) => p.id !== photo.id);
-
-        $q.notify({
-          type: 'positive',
-          message: 'Photo deleted successfully',
-          position: 'bottom',
-        });
-      } catch (error: unknown) {
-        const err = error as { response?: { data?: { message?: string } } };
-        $q.notify({
-          type: 'negative',
-          message: err.response?.data?.message || 'Failed to delete photo',
-          position: 'bottom',
-        });
-      }
-    })();
-  });
-};
-
-const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 Bytes';
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
 };
 
 watch(

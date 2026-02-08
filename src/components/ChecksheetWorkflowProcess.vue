@@ -7,6 +7,7 @@
             The checksheet is in draft status. Complete the checksheet to proceed.
           </div>
           <q-stepper-navigation>
+            <q-btn @click="saveDraft" color="positive" label="Save Draft" class="q-mr-sm" />
             <q-btn @click="completeChecksheet" color="primary" label="Complete" />
           </q-stepper-navigation>
         </q-step>
@@ -16,27 +17,15 @@
             The checksheet has been completed. Review and approve or reject.
           </div>
           <q-stepper-navigation>
-            <q-btn
-              @click="reviewChecksheet(true)"
-              color="primary"
-              label="Pass"
-              class="q-mr-sm"
-            />
+            <q-btn @click="reviewChecksheet(true)" color="primary" label="Pass" class="q-mr-sm" />
             <q-btn @click="rejectChecksheet" color="negative" label="Reject" />
           </q-stepper-navigation>
         </q-step>
 
         <q-step :name="3" title="Reviewed" icon="rate_review" :done="workflowStep > 3">
-          <div class="text-body2">
-            The checksheet has been reviewed. Final approval required.
-          </div>
+          <div class="text-body2">The checksheet has been reviewed. Final approval required.</div>
           <q-stepper-navigation>
-            <q-btn
-              @click="approveChecksheet"
-              color="positive"
-              label="Approve"
-              class="q-mr-sm"
-            />
+            <q-btn @click="approveChecksheet" color="positive" label="Approve" class="q-mr-sm" />
             <q-btn @click="rejectChecksheet" color="negative" label="Reject" />
           </q-stepper-navigation>
         </q-step>
@@ -101,17 +90,44 @@ watch(
   () => props.initialStep,
   (newStep) => {
     workflowStep.value = newStep;
-  }
+  },
 );
 
 watch(
   () => props.initialStatus,
   (newStatus) => {
     currentStatus.value = newStatus;
-  }
+  },
 );
 
 const getBaseApiUrl = () => `/api/checksheets/${props.checksheetId}`;
+
+const saveDraft = async () => {
+  if (!props.checksheetId) return;
+
+  try {
+    await api.put(`${getBaseApiUrl()}/save-draft`, {
+      checksheet_items: props.items.map((item) => ({
+        id: item.id,
+        status: item.status,
+        remarks: item.remarks,
+      })),
+    });
+
+    $q.notify({
+      type: 'positive',
+      message: 'Draft saved successfully',
+      position: 'bottom',
+    });
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { message?: string } } };
+    $q.notify({
+      type: 'negative',
+      message: err.response?.data?.message || 'Failed to save draft',
+      position: 'bottom',
+    });
+  }
+};
 
 const completeChecksheet = async () => {
   if (!props.checksheetId) return;
