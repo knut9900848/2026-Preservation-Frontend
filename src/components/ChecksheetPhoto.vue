@@ -1,56 +1,30 @@
 <template>
   <div class="checksheet-photo q-mt-md">
-    <div class="text-h6 q-mb-md">Attachments</div>
+    <div class="text-h6 q-mb-md">Featured Photos</div>
 
     <!-- Photo Groups -->
     <div class="q-gutter-md">
-      <q-card
-        v-for="(group, groupIndex) in photoGroups"
-        :key="group.id || `new-${groupIndex}`"
-        flat
-        bordered
-        class="q-pa-md"
-      >
+      <q-card v-for="(group, groupIndex) in photoGroups" :key="group.id || `new-${groupIndex}`" flat bordered
+        class="q-pa-md">
         <div class="row items-center q-mb-sm">
           <div class="text-subtitle2 text-grey-8">Photo Group {{ groupIndex + 1 }}</div>
           <q-space />
-          <q-btn
-            v-if="!disabled && photoGroups.length > 1"
-            flat
-            dense
-            icon="delete"
-            color="negative"
-            size="sm"
-            @click="removeGroup(groupIndex)"
-          >
+          <q-btn v-if="!disabled && photoGroups.length > 1" flat dense icon="delete" color="negative" size="sm"
+            @click="removeGroup(groupIndex)">
             <q-tooltip>Remove Group</q-tooltip>
           </q-btn>
         </div>
 
         <!-- File Upload -->
         <div class="q-mb-sm">
-          <q-file
-            v-if="!disabled"
-            v-model="group.files"
-            outlined
-            dense
-            multiple
-            accept="image/*"
-            :label="`Select images (${group.files.length} selected)`"
-            @update:model-value="onFilesChanged(groupIndex)"
-          >
+          <q-file v-if="!disabled" v-model="group.files" outlined dense multiple accept="image/*"
+            :label="`Select images (${group.files.length} selected)`" @update:model-value="onFilesChanged(groupIndex)">
             <template v-slot:prepend>
               <q-icon name="attach_file" />
             </template>
             <template v-slot:append>
-              <q-btn
-                v-if="group.files.length > 0"
-                flat
-                dense
-                icon="clear"
-                size="sm"
-                @click.stop="clearFiles(groupIndex)"
-              >
+              <q-btn v-if="group.files.length > 0" flat dense icon="clear" size="sm"
+                @click.stop="clearFiles(groupIndex)">
                 <q-tooltip>Clear</q-tooltip>
               </q-btn>
             </template>
@@ -59,15 +33,9 @@
 
         <!-- Description -->
         <div class="q-mb-sm">
-          <q-input
-            v-model="group.description"
-            outlined
-            dense
-            label="Description for this group"
-            placeholder="Enter description for these photos..."
-            :readonly="disabled"
-            @blur="updateGroupDescription(group)"
-          />
+          <q-input v-model="group.description" outlined dense label="Description for this group"
+            placeholder="Enter description for these photos..." :readonly="disabled"
+            @blur="updateGroupDescription(group)" />
         </div>
 
         <!-- Preview of selected files (before upload) -->
@@ -75,13 +43,7 @@
           <div class="text-caption text-grey-6 q-mb-xs">Selected files:</div>
           <div class="row q-gutter-sm">
             <div v-for="(file, fileIndex) in group.files" :key="fileIndex" class="col-auto">
-              <q-chip
-                removable
-                dense
-                color="primary"
-                text-color="white"
-                @remove="removeFile(groupIndex, fileIndex)"
-              >
+              <q-chip removable dense color="primary" text-color="white" @remove="removeFile(groupIndex, fileIndex)">
                 <q-icon name="image" size="xs" class="q-mr-xs" />
                 {{ file.name }}
               </q-chip>
@@ -91,43 +53,20 @@
 
         <!-- Uploaded Photos Gallery -->
         <div v-if="group.photos.length > 0" class="row q-col-gutter-sm">
-          <div
-            v-for="photo in group.photos"
-            :key="photo.id"
-            class="col-6 col-sm-4 col-md-3"
-          >
+          <div v-for="photo in group.photos" :key="photo.id" class="col-6 col-sm-4 col-md-3">
             <q-card flat bordered class="photo-card">
-              <q-img
-                :src="getPhotoUrl(photo.url)"
-                :ratio="1"
-                fit="cover"
-                class="cursor-pointer"
-                @click="openPhotoPreview(photo)"
-              >
+              <q-img :src="getPhotoUrl(photo.url)" :ratio="1" fit="cover" class="cursor-pointer"
+                @click="openPhotoPreview(photo)">
                 <template v-slot:loading>
                   <q-spinner color="primary" size="30px" />
                 </template>
               </q-img>
               <q-card-actions class="q-pa-xs" align="right">
-                <q-btn
-                  flat
-                  dense
-                  icon="download"
-                  color="primary"
-                  size="xs"
-                  @click="downloadPhoto(photo)"
-                >
+                <q-btn flat dense icon="download" color="primary" size="xs" @click="downloadPhoto(photo)">
                   <q-tooltip>Download</q-tooltip>
                 </q-btn>
-                <q-btn
-                  v-if="!disabled"
-                  flat
-                  dense
-                  icon="delete"
-                  color="negative"
-                  size="xs"
-                  @click="deletePhoto(group, photo)"
-                >
+                <q-btn v-if="!disabled" flat dense icon="delete" color="negative" size="xs"
+                  @click="deletePhoto(group, photo)">
                   <q-tooltip>Delete</q-tooltip>
                 </q-btn>
               </q-card-actions>
@@ -136,10 +75,7 @@
         </div>
 
         <!-- Empty state for group -->
-        <div
-          v-if="group.photos.length === 0 && group.files.length === 0"
-          class="text-center q-pa-md text-grey-5"
-        >
+        <div v-if="group.photos.length === 0 && group.files.length === 0" class="text-center q-pa-md text-grey-5">
           <q-icon name="add_photo_alternate" size="32px" />
           <div class="text-caption">No photos in this group</div>
         </div>
@@ -148,43 +84,18 @@
 
     <!-- Action Buttons -->
     <div v-if="!disabled" class="row q-gutter-sm q-mt-md">
-      <q-btn
-        flat
-        dense
-        icon="add_circle"
-        color="primary"
-        label="Add Photo Group"
-        @click="addGroup"
-      />
-      <q-btn
-        flat
-        dense
-        icon="cloud_upload"
-        color="positive"
-        label="Upload All"
-        :disable="!hasFilesToUpload"
-        :loading="uploading"
-        @click="uploadAllGroups"
-      />
+      <q-btn flat dense icon="add_circle" color="primary" label="Add Photo Group" @click="addGroup" />
+      <q-btn flat dense icon="cloud_upload" color="positive" label="Upload All" :disable="!hasFilesToUpload"
+        :loading="uploading" @click="uploadAllGroups" />
     </div>
 
     <!-- Empty State (no groups) -->
-    <div
-      v-if="photoGroups.length === 0"
-      class="text-center q-pa-lg text-grey-6"
-    >
+    <div v-if="photoGroups.length === 0" class="text-center q-pa-lg text-grey-6">
       <q-icon name="photo_library" size="64px" color="grey-5" />
       <div class="text-body1 q-mt-md">No photo groups yet</div>
       <div class="text-caption">Add a photo group to attach images</div>
-      <q-btn
-        v-if="!disabled"
-        flat
-        color="primary"
-        label="Add Photo Group"
-        icon="add"
-        class="q-mt-md"
-        @click="addGroup"
-      />
+      <q-btn v-if="!disabled" flat color="primary" label="Add Photo Group" icon="add" class="q-mt-md"
+        @click="addGroup" />
     </div>
 
     <!-- Photo Preview Dialog -->
@@ -197,12 +108,7 @@
         </q-card-section>
 
         <q-card-section>
-          <q-img
-            v-if="selectedPhoto"
-            :src="getPhotoUrl(selectedPhoto.url)"
-            fit="contain"
-            style="max-height: 70vh"
-          >
+          <q-img v-if="selectedPhoto" :src="getPhotoUrl(selectedPhoto.url)" fit="contain" style="max-height: 70vh">
             <template v-slot:loading>
               <q-spinner color="primary" size="50px" />
             </template>

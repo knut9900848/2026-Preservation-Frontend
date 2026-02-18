@@ -74,6 +74,15 @@
         </q-item>
 
         <q-expansion-item icon="mdi-cog" label="Setting" expand-separator default-opened>
+          <q-item clickable to="/setting/general" class="q-pl-lg">
+            <q-item-section avatar>
+              <q-icon name="mdi-tune" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>General</q-item-label>
+            </q-item-section>
+          </q-item>
+
           <q-item clickable to="/setting/activities" class="q-pl-lg">
             <q-item-section avatar>
               <q-icon name="mdi-transit-transfer" />
@@ -116,6 +125,24 @@
             </q-item-section>
             <q-item-section>
               <q-item-label>Sub Categories</q-item-label>
+            </q-item-section>
+          </q-item>
+
+          <q-item clickable to="/setting/disciplines" class="q-pl-lg">
+            <q-item-section avatar>
+              <q-icon name="mdi-hammer-wrench" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Disciplines</q-item-label>
+            </q-item-section>
+          </q-item>
+
+          <q-item clickable to="/setting/discipline-items" class="q-pl-lg">
+            <q-item-section avatar>
+              <q-icon name="mdi-format-list-checks" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Discipline Items</q-item-label>
             </q-item-section>
           </q-item>
 

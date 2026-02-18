@@ -7,7 +7,7 @@
 
     <q-table :rows="users" :columns="columns" row-key="id" :loading="loading" bordered flat
       table-header-style="background-color: #007bff; color: #fff; font-weight: bold" separator="cell" color="primary"
-      square :filter="filter">
+      square :filter="filter" :rows-per-page-options="[0]" hide-pagination>
       <template v-slot:top-right>
         <q-input borderless dense debounce="300" v-model="filter" placeholder="Search">
           <template v-slot:append>

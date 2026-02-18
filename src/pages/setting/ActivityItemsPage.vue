@@ -1,21 +1,21 @@
 <template>
-  <q-card class="activity-items-modal-card">
+  <q-card class="activity-items-modal-card" style="width: 900px; max-width: 90vw;">
     <q-card-section class="row items-center q-pb-none">
-      <div class="text-h6">Activity Items - {{ activity?.code }} ({{ activity?.description }})</div>
+      <div class="text-h6">Activity Items - {{ activity?.description }}</div>
       <q-space />
       <q-btn icon="close" flat round @click="$emit('close')" />
     </q-card-section>
 
     <q-separator />
 
-    <q-card-section class="q-pt-md" style="height: calc(100vh - 100px); overflow-y: auto;">
+    <q-card-section class="q-pt-md" style="max-height: 70vh; overflow-y: auto;">
       <div class="q-mb-md row justify-between items-center">
         <div class="text-subtitle1">Activity Items</div>
         <q-btn color="primary" label="Add Item" icon="add" @click="onAdd" />
       </div>
 
       <q-table :rows="activityItemList" :columns="columns" row-key="id" :loading="loading" bordered flat
-        class="activity-items-table">
+        class="activity-items-table" :rows-per-page-options="[0]" hide-pagination>
         <template v-slot:body-cell-is_active="props">
           <q-td :props="props">
             <q-badge :color="props.row.is_active ? 'primary' : 'grey'">
@@ -72,7 +72,6 @@ import { api } from 'boot/axios';
 
 interface Activity {
   id: number;
-  code: string;
   description: string;
 }
 
@@ -133,6 +132,7 @@ const columns = [
     field: 'description',
     sortable: false,
     align: 'left' as const,
+    style: 'white-space: normal',
   },
   {
     name: 'order',

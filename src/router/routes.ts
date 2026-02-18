@@ -12,7 +12,13 @@ const routes: RouteRecordRaw[] = [
       { path: '', component: () => import('pages/IndexPage.vue') },
       { path: 'profile', component: () => import('pages/ProfilePage.vue') },
       { path: 'equipments', component: () => import('pages/EquipmentListPage.vue') },
+      {
+        path: 'equipments/:id/checksheets',
+        component: () => import('pages/EquipmentChecksheetListPage.vue'),
+      },
       { path: 'checksheets', component: () => import('pages/ChecksheetListPage.vue') },
+      { path: 'checksheets/:id', component: () => import('pages/ChecksheetPage.vue') },
+      { path: 'setting/general', component: () => import('pages/setting/SettingsPage.vue') },
       { path: 'setting/activities', component: () => import('pages/setting/ActivityListPage.vue') },
       {
         path: 'setting/suppliers',
@@ -29,6 +35,14 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'setting/sub-categories',
         component: () => import('pages/setting/SubCategoryListPage.vue'),
+      },
+      {
+        path: 'setting/disciplines',
+        component: () => import('pages/setting/DisciplineListPage.vue'),
+      },
+      {
+        path: 'setting/discipline-items',
+        component: () => import('pages/setting/DisciplineItemsPage.vue'),
       },
       {
         path: 'setting/users',

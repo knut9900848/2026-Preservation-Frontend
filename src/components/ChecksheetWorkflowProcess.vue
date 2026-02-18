@@ -17,30 +17,25 @@
             The checksheet has been completed. Review and approve or reject.
           </div>
           <q-stepper-navigation>
-            <q-btn @click="reviewChecksheet(true)" color="primary" label="Pass" class="q-mr-sm" />
+            <q-btn @click="approveChecksheet(true)" color="primary" label="Approve" class="q-mr-sm" />
             <q-btn @click="rejectChecksheet" color="negative" label="Reject" />
           </q-stepper-navigation>
         </q-step>
 
-        <q-step :name="3" title="Reviewed" icon="rate_review" :done="workflowStep > 3">
-          <div class="text-body2">The checksheet has been reviewed. Final approval required.</div>
+        <q-step :name="3" title="Approved" icon="rate_review" :done="workflowStep > 3">
+          <div class="text-body2">The checksheet has been approved. Final approval required.</div>
           <q-stepper-navigation>
-            <q-btn @click="approveChecksheet" color="positive" label="Approve" class="q-mr-sm" />
+            <q-btn @click="AcceptChecksheet" color="positive" label="Accept" class="q-mr-sm" />
             <q-btn @click="rejectChecksheet" color="negative" label="Reject" />
           </q-stepper-navigation>
         </q-step>
 
-        <q-step :name="4" title="Approved" icon="verified" :done="workflowStep === 4">
+        <q-step :name="4" title="Accepted" icon="verified" :done="workflowStep === 4">
           <div class="text-body2">
-            The checksheet has been approved. No further action required.
+            The checksheet has been accepted. No further action required.
           </div>
           <q-stepper-navigation>
-            <q-btn
-              @click="generateNextRound"
-              color="primary"
-              label="Generate Next Round"
-              icon="add_circle"
-            />
+            <q-btn @click="generateNextRound" color="primary" label="Generate Next Round" icon="add_circle" />
           </q-stepper-navigation>
         </q-step>
       </q-stepper>
@@ -65,6 +60,7 @@ interface Props {
   initialStatus?: string;
   currentRound?: number;
   items?: ChecksheetItem[];
+  instruction?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -72,6 +68,7 @@ const props = withDefaults(defineProps<Props>(), {
   initialStatus: 'Draft',
   currentRound: 0,
   items: () => [],
+  instruction: '',
 });
 
 const emit = defineEmits<{
@@ -107,6 +104,7 @@ const saveDraft = async () => {
 
   try {
     await api.put(`${getBaseApiUrl()}/save-draft`, {
+      instruction: props.instruction,
       checksheet_items: props.items.map((item) => ({
         id: item.id,
         status: item.status,
@@ -163,52 +161,23 @@ const completeChecksheet = async () => {
   }
 };
 
-const reviewChecksheet = async (approve: boolean) => {
-  if (!props.checksheetId) return;
-
-  try {
-    await api.put(`${getBaseApiUrl()}/review`, {
-      status: approve ? 'reviewed' : 'draft',
-    });
-
-    workflowStep.value = approve ? 3 : 1;
-    currentStatus.value = approve ? 'Reviewed' : 'Draft';
-
-    emit('stepChanged', { step: approve ? 3 : 1, status: approve ? 'Reviewed' : 'Draft' });
-    emit('statusChanged');
-
-    $q.notify({
-      type: 'positive',
-      message: approve ? 'Checksheet reviewed successfully' : 'Checksheet rejected to draft',
-      position: 'bottom',
-    });
-  } catch (error: unknown) {
-    const err = error as { response?: { data?: { message?: string } } };
-    $q.notify({
-      type: 'negative',
-      message: err.response?.data?.message || 'Failed to review checksheet',
-      position: 'bottom',
-    });
-  }
-};
-
-const approveChecksheet = async () => {
+const approveChecksheet = async (approve: boolean) => {
   if (!props.checksheetId) return;
 
   try {
     await api.put(`${getBaseApiUrl()}/approve`, {
-      status: 'approved',
+      status: approve ? 'approved' : 'draft',
     });
 
-    workflowStep.value = 4;
-    currentStatus.value = 'Approved';
+    workflowStep.value = approve ? 3 : 1;
+    currentStatus.value = approve ? 'Approved' : 'Draft';
 
-    emit('stepChanged', { step: 4, status: 'Approved' });
+    emit('stepChanged', { step: approve ? 3 : 1, status: approve ? 'Approved' : 'Draft' });
     emit('statusChanged');
 
     $q.notify({
       type: 'positive',
-      message: 'Checksheet approved successfully',
+      message: approve ? 'Checksheet approved successfully' : 'Checksheet rejected to draft',
       position: 'bottom',
     });
   } catch (error: unknown) {
@@ -216,6 +185,35 @@ const approveChecksheet = async () => {
     $q.notify({
       type: 'negative',
       message: err.response?.data?.message || 'Failed to approve checksheet',
+      position: 'bottom',
+    });
+  }
+};
+
+const AcceptChecksheet = async () => {
+  if (!props.checksheetId) return;
+
+  try {
+    await api.put(`${getBaseApiUrl()}/accept`, {
+      status: 'accepted',
+    });
+
+    workflowStep.value = 4;
+    currentStatus.value = 'Accepted';
+
+    emit('stepChanged', { step: 4, status: 'Accepted' });
+    emit('statusChanged');
+
+    $q.notify({
+      type: 'positive',
+      message: 'Checksheet accepted successfully',
+      position: 'bottom',
+    });
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { message?: string } } };
+    $q.notify({
+      type: 'negative',
+      message: err.response?.data?.message || 'Failed to accept checksheet',
       position: 'bottom',
     });
   }
@@ -264,10 +262,10 @@ const rejectChecksheet = () => {
 const generateNextRound = () => {
   if (!props.checksheetId) return;
 
-  if (currentStatus.value?.toLowerCase() !== 'approved') {
+  if (currentStatus.value?.toLowerCase() !== 'accepted') {
     $q.notify({
       type: 'warning',
-      message: 'Only approved checksheets can generate next round',
+      message: 'Only accepted checksheets can generate next round',
       position: 'bottom',
     });
     return;

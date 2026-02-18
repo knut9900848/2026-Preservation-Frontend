@@ -95,7 +95,6 @@ interface CheckSheetHistory {
 }
 
 interface Props {
-  equipmentId: number | null;
   checksheetId: number | null;
   modelValue: boolean;
 }
@@ -134,12 +133,7 @@ const fetchHistory = async () => {
   loading.value = true;
 
   try {
-    // Use equipment-scoped API if equipmentId is provided, otherwise use global API
-    const url = props.equipmentId
-      ? `/api/equipments/${props.equipmentId}/checksheets/${props.checksheetId}/history`
-      : `/api/checksheets/${props.checksheetId}/history`;
-
-    const response = await api.get(url);
+    const response = await api.get(`/api/checksheets/${props.checksheetId}/history`);
 
     histories.value = response.data.histories || [];
   } catch (error: unknown) {
@@ -157,8 +151,8 @@ const fetchHistory = async () => {
 const getActionTitle = (action: string): string => {
   const titles: Record<string, string> = {
     completed: 'Checksheet Completed',
-    reviewed: 'Checksheet Reviewed',
     approved: 'Checksheet Approved',
+    accepted: 'Checksheet Accepted',
     rejected: 'Checksheet Rejected',
   };
   return titles[action] || action;
@@ -167,8 +161,8 @@ const getActionTitle = (action: string): string => {
 const getActionIcon = (action: string): string => {
   const icons: Record<string, string> = {
     completed: 'check_circle',
-    reviewed: 'rate_review',
-    approved: 'verified',
+    approved: 'rate_review',
+    accepted: 'verified',
     rejected: 'cancel',
   };
   return icons[action] || 'help';
@@ -177,8 +171,8 @@ const getActionIcon = (action: string): string => {
 const getActionColor = (action: string): string => {
   const colors: Record<string, string> = {
     completed: 'primary',
-    reviewed: 'info',
-    approved: 'positive',
+    approved: 'info',
+    accepted: 'positive',
     rejected: 'negative',
   };
   return colors[action] || 'grey';
@@ -189,8 +183,8 @@ const getStatusColor = (status: string): string => {
   const colors: Record<string, string> = {
     draft: 'grey',
     completed: 'primary',
-    reviewed: 'info',
-    approved: 'positive',
+    approved: 'info',
+    accepted: 'positive',
     rejected: 'negative',
   };
   return colors[statusLower] || 'grey';

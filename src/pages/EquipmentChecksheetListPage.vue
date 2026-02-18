@@ -1,51 +1,59 @@
 <template>
-  <q-card class="checksheets-modal-card">
-    <q-card-section class="row items-center">
-      <div class="text-h6">Checksheets - {{ equipment?.name }} ({{ equipment?.tag_no }})</div>
-      <q-space />
-      <q-btn icon="close" flat round dense @click="$emit('close')" />
-    </q-card-section>
-
-    <q-separator />
-
-    <q-card-section class="q-pt-md" style="height: calc(100vh - 100px); overflow-y: auto;">
-      <div class="q-mb-md row justify-between items-center">
-        <div class="text-subtitle1">
-          Checksheets
-        </div>
+  <q-page class="q-pa-md">
+    <div class="row items-center q-mb-md">
+      <q-btn icon="arrow_back" flat round dense @click="router.back()" class="q-mr-sm">
+        <q-tooltip>Back</q-tooltip>
+      </q-btn>
+      <div class="text-h6">
+        Checksheets - {{ equipment?.name }} ({{ equipment?.tag_no }})
       </div>
+    </div>
 
-      <q-table :rows="checkSheets" :columns="checksheetColumns" row-key="id" :loading="loading" bordered flat
-        table-header-style="background-color: #007bff; color: #fff; font-weight: bold" separator="cell" color="primary"
-        square>
-        <template v-slot:body-cell-technicians="props">
-          <q-td :props="props">
-            {{props.row.technicians?.map((t: { name: string }) => t.name).join(', ') || 'None'}}
-          </q-td>
-        </template>
-        <template v-slot:body-cell-inspectors="props">
-          <q-td :props="props">
-            {{props.row.inspectors?.map((i: { name: string }) => i.name).join(', ') || 'None'}}
-          </q-td>
-        </template>
-        <template v-slot:body-cell-checksheet="props">
-          <q-td :props="props" class="row justify-center">
-            <q-btn flat color="primary" label="View Checksheet" @click="openChecksheetItems(props.row)" size="sm" />
-          </q-td>
-        </template>
-      </q-table>
-    </q-card-section>
+    <q-separator class="q-mb-md" />
 
-    <ChecksheetItemsPage v-model="showItemsDialog" :checksheet="selectedChecksheet"
-      @status-changed="fetchChecksheets" />
-  </q-card>
-</template>e2
+    <q-table
+      :rows="checkSheets"
+      :columns="checksheetColumns"
+      row-key="id"
+      :loading="loading"
+      bordered
+      flat
+      table-header-style="background-color: #007bff; color: #fff; font-weight: bold"
+      separator="cell"
+      color="primary"
+      square
+    >
+      <template v-slot:body-cell-technicians="props">
+        <q-td :props="props">
+          {{ props.row.technicians?.map((t: { name: string }) => t.name).join(', ') || 'None' }}
+        </q-td>
+      </template>
+      <template v-slot:body-cell-inspectors="props">
+        <q-td :props="props">
+          {{ props.row.inspectors?.map((i: { name: string }) => i.name).join(', ') || 'None' }}
+        </q-td>
+      </template>
+      <template v-slot:body-cell-checksheet="props">
+        <q-td :props="props" class="row justify-center">
+          <q-btn
+            flat
+            color="primary"
+            label="View Checksheet"
+            @click="openChecksheetItems(props.row)"
+            size="sm"
+          />
+        </q-td>
+      </template>
+    </q-table>
+
+  </q-page>
+</template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
 import { api } from 'boot/axios';
-import ChecksheetItemsPage from './ChecksheetItemsPage.vue';
 
 interface Equipment {
   id: number;
@@ -74,22 +82,14 @@ interface Checksheet {
   updated_at?: string;
 }
 
-interface Props {
-  equipment: Equipment | null;
-}
-
-const props = defineProps<Props>();
-
-defineEmits<{
-  (e: 'close'): void;
-}>();
-
+const route = useRoute();
+const router = useRouter();
 const $q = useQuasar();
 
+const equipmentId = Number(route.params.id);
+const equipment = ref<Equipment | null>(null);
 const checkSheets = ref<Checksheet[]>([]);
 const loading = ref(false);
-const showItemsDialog = ref(false);
-const selectedChecksheet = ref<Checksheet | null>(null);
 
 const checksheetColumns = [
   {
@@ -185,17 +185,28 @@ const checksheetColumns = [
   },
 ];
 
+const fetchEquipment = async () => {
+  try {
+    const response = await api.get(`/api/equipments/${equipmentId}`);
+    equipment.value = response.data.equipment || response.data.data || response.data;
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { message?: string } } };
+    $q.notify({
+      type: 'negative',
+      message: err.response?.data?.message || 'Failed to load equipment',
+      position: 'bottom',
+    });
+  }
+};
+
 const fetchChecksheets = async () => {
-  if (!props.equipment?.id) return;
+  if (!equipmentId) return;
 
   loading.value = true;
 
   try {
-    const response = await api.get(`/api/equipments/${props.equipment.id}/checksheets`);
+    const response = await api.get(`/api/equipments/${equipmentId}/checksheets`);
     checkSheets.value = response.data.check_sheets || [];
-
-    console.log('Fetched checksheets:', checkSheets.value);
-
   } catch (error: unknown) {
     const err = error as { response?: { data?: { message?: string } } };
     $q.notify({
@@ -209,18 +220,11 @@ const fetchChecksheets = async () => {
 };
 
 const openChecksheetItems = (checksheet: Checksheet) => {
-  selectedChecksheet.value = checksheet;
-  showItemsDialog.value = true;
+  void router.push(`/checksheets/${checksheet.id}`);
 };
 
-// Watch for equipment changes to fetch checksheets
-watch(
-  () => props.equipment,
-  (newEquipment) => {
-    if (newEquipment) {
-      void fetchChecksheets();
-    }
-  },
-  { immediate: true }
-);
+onMounted(() => {
+  void fetchEquipment();
+  void fetchChecksheets();
+});
 </script>

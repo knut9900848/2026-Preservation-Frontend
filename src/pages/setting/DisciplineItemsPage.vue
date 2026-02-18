@@ -1,14 +1,14 @@
 <template>
   <q-page class="q-pa-md">
     <div class="q-mb-md row justify-between items-center">
-      <div class="text-h5">Activity List</div>
-      <q-btn color="primary" label="Add Activity" icon="add" @click="onAdd" />
+      <div class="text-h5">Discipline Item List</div>
+      <q-btn color="primary" label="Add Discipline Item" icon="add" @click="onAdd" />
     </div>
 
-    <q-table :rows="activityList" :columns="columns" row-key="id" :loading="loading" v-model:pagination="pagination"
-      @request="onRequest" bordered flat class="activity-table" separator="cell" color="primary" square
+    <q-table :rows="disciplineItemList" :columns="columns" row-key="id" :loading="loading"
+      v-model:pagination="pagination" @request="onRequest" bordered flat separator="cell" color="primary" square
       table-header-style="background-color: #007bff; color: #fff; font-weight: bold" binary-state-sort hide-pagination
-      :rows-per-page-options="[0]">
+      :rows-per-page-options="[10, 25, 50, 100]">
       <template v-slot:top-right>
         <q-input v-model="filter" placeholder="Search" dense debounce="300" outlined @update:model-value="onSearch">
           <template v-slot:append>
@@ -17,16 +17,16 @@
         </q-input>
       </template>
 
+      <template v-slot:body-cell-discipline="props">
+        <q-td :props="props">
+          {{ props.row.discipline?.name ?? '-' }}
+        </q-td>
+      </template>
+
       <template v-slot:body-cell-is_active="props">
         <q-td :props="props">
           <q-badge :color="props.row.is_active ? 'primary' : 'grey'"
             :label="props.row.is_active ? 'Active' : 'Inactive'" />
-        </q-td>
-      </template>
-
-      <template v-slot:body-cell-items="props">
-        <q-td :props="props">
-          <q-btn flat color="primary" label="Items" @click="openItemsModal(props.row)" size="sm" />
         </q-td>
       </template>
 
@@ -46,29 +46,21 @@
     <q-dialog v-model="showDialog" persistent>
       <q-card style="min-width: 500px">
         <q-card-section class="bg-primary text-white">
-          <div class="text-h6">{{ isEditing ? 'Edit Activity' : 'Add Activity' }}</div>
+          <div class="text-h6">{{ isEditing ? 'Edit Discipline Item' : 'Add Discipline Item' }}</div>
         </q-card-section>
 
         <q-card-section class="q-pt-md">
           <q-form @submit="onSubmit" class="q-gutter-md">
             <q-select v-model="formData.discipline_id" outlined dense :options="disciplineOptions" option-value="id"
               option-label="name" emit-value map-options label="Discipline *" :rules="[
-                (val) => val !== null || 'Discipline is required',
-              ]" @update:model-value="onDisciplineChange" />
-
-            <q-select v-model="formData.discipline_item_id" outlined dense :options="filteredDisciplineItems"
-              option-value="id" option-label="name" emit-value map-options label="Discipline Item"
-              :disable="!formData.discipline_id" clearable />
-
-            <q-input v-model="formData.description" label="Description *" outlined dense :rules="[
-              (val) => (val && val.length > 0) || 'Description is required',
+              (val) => val !== null || 'Discipline is required',
             ]" />
 
-            <q-input v-model.number="formData.frequency" label="Frequency (days)" type="number" outlined dense :rules="[
-              (val) => val >= 0 || 'Frequency must be 0 or greater',
+            <q-input v-model="formData.name" label="Name *" outlined dense :rules="[
+              (val) => (val && val.length > 0) || 'Name is required',
             ]" />
 
-            <q-input v-model="formData.notes" label="Notes" outlined dense type="textarea" rows="3" />
+            <q-input v-model="formData.method" label="Method" outlined dense />
 
             <q-toggle v-model="formData.is_active" label="Active" />
 
@@ -80,56 +72,36 @@
         </q-card-section>
       </q-card>
     </q-dialog>
-
-    <!-- Activity Items Full-Screen Modal -->
-    <q-dialog v-model="showItemsModal">
-      <ActivityItemsPage :activity="selectedActivity" @close="showItemsModal = false" />
-    </q-dialog>
   </q-page>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
 import { api } from 'boot/axios';
-import ActivityItemsPage from './ActivityItemsPage.vue';
 
 interface Discipline {
   id: number;
   name: string;
+  code: string;
 }
 
 interface DisciplineItem {
   id: number;
   discipline_id: number;
+  discipline?: Discipline | null;
   code: string;
   name: string;
   method: string | null;
-  is_active: boolean;
-}
-
-interface Activity {
-  id: number;
-  equipment_id: number;
-  code?: string;
-  discipline_id: number | null;
-  discipline?: Discipline | null;
-  discipline_item_id: number | null;
-  discipline_item?: DisciplineItem | null;
-  description: string;
-  notes: string | null;
-  frequency: number;
   is_active: boolean;
   created_at?: string;
   updated_at?: string;
 }
 
-interface ActivityFormData {
+interface DisciplineItemFormData {
   discipline_id: number | null;
-  discipline_item_id: number | null;
-  description: string;
-  notes: string;
-  frequency: number;
+  name: string;
+  method: string;
   is_active: boolean;
 }
 
@@ -153,23 +125,23 @@ const columns = [
   {
     name: 'discipline',
     label: 'Discipline',
-    field: (row: Activity) => row.discipline?.name ?? '-',
+    field: (row: DisciplineItem) => row.discipline?.name ?? '-',
     sortable: false,
     align: 'center' as const,
   },
   {
-    name: 'item',
-    label: 'Item',
-    field: (row: Activity) => row.discipline_item?.name ?? '-',
-    sortable: false,
+    name: 'name',
+    label: 'Name',
+    field: 'name',
+    sortable: true,
     align: 'left' as const,
   },
   {
-    name: 'frequency',
-    label: 'Frequency (days)',
-    field: 'frequency',
-    sortable: true,
-    align: 'center' as const,
+    name: 'method',
+    label: 'Method',
+    field: 'method',
+    sortable: false,
+    align: 'left' as const,
   },
   {
     name: 'is_active',
@@ -177,13 +149,6 @@ const columns = [
     field: 'is_active',
     sortable: true,
     align: 'center' as const,
-  },
-  {
-    name: 'items',
-    label: 'Items',
-    field: 'items',
-    align: 'center' as const,
-    sortable: false,
   },
   {
     name: 'action',
@@ -194,7 +159,7 @@ const columns = [
   },
 ];
 
-const activityList = ref<Activity[]>([]);
+const disciplineItemList = ref<DisciplineItem[]>([]);
 const loading = ref(false);
 const filter = ref('');
 const pagination = ref({
@@ -207,18 +172,6 @@ const pagination = ref({
 const maxPage = ref(1);
 
 const disciplineOptions = ref<Discipline[]>([]);
-const allDisciplineItems = ref<DisciplineItem[]>([]);
-
-const filteredDisciplineItems = computed(() => {
-  if (!formData.value.discipline_id) return [];
-  return allDisciplineItems.value.filter(
-    (item) => item.discipline_id === formData.value.discipline_id,
-  );
-});
-
-const onDisciplineChange = () => {
-  formData.value.discipline_item_id = null;
-};
 
 // Dialog state
 const showDialog = ref(false);
@@ -226,25 +179,18 @@ const isEditing = ref(false);
 const editingId = ref<number | null>(null);
 
 // Form data
-const formData = ref<ActivityFormData>({
+const formData = ref<DisciplineItemFormData>({
   discipline_id: null,
-  discipline_item_id: null,
-  description: '',
-  notes: '',
-  frequency: 0,
+  name: '',
+  method: '',
   is_active: true,
 });
 
-// Activity Items modal state
-const showItemsModal = ref(false);
-const selectedActivity = ref<Activity | null>(null);
-
-// Fetch activity list
-const fetchActivityList = async () => {
+const fetchDisciplineItemList = async () => {
   loading.value = true;
 
   try {
-    const response = await api.get('/api/activities', {
+    const response = await api.get('/api/discipline-items', {
       params: {
         page: pagination.value.page,
         per_page: pagination.value.rowsPerPage,
@@ -254,15 +200,15 @@ const fetchActivityList = async () => {
       },
     });
 
-    activityList.value = response.data.activities || response.data.data || [];
-    pagination.value.rowsNumber = response.data.total || activityList.value.length;
+    disciplineItemList.value = response.data.discipline_items || response.data.data || [];
+    pagination.value.rowsNumber = response.data.total || disciplineItemList.value.length;
     pagination.value.rowsPerPage = response.data.per_page || pagination.value.rowsPerPage;
     maxPage.value = Math.ceil(pagination.value.rowsNumber / pagination.value.rowsPerPage) || 1;
   } catch (error: unknown) {
     const err = error as { response?: { data?: { message?: string } } };
     $q.notify({
       type: 'negative',
-      message: err.response?.data?.message || 'Failed to load activity list',
+      message: err.response?.data?.message || 'Failed to load discipline item list',
       position: 'bottom',
     });
   } finally {
@@ -283,26 +229,24 @@ const onRequest = (props: {
   pagination.value.rowsPerPage = rowsPerPage;
   pagination.value.sortBy = sortBy;
   pagination.value.descending = descending;
-  void fetchActivityList();
+  void fetchDisciplineItemList();
 };
 
 const onSearch = () => {
   pagination.value.page = 1;
-  void fetchActivityList();
+  void fetchDisciplineItemList();
 };
 
 const onPageChange = (newPage: number) => {
   pagination.value.page = newPage;
-  void fetchActivityList();
+  void fetchDisciplineItemList();
 };
 
 const resetForm = () => {
   formData.value = {
     discipline_id: null,
-    discipline_item_id: null,
-    description: '',
-    notes: '',
-    frequency: 0,
+    name: '',
+    method: '',
     is_active: true,
   };
   isEditing.value = false;
@@ -314,16 +258,14 @@ const onAdd = () => {
   showDialog.value = true;
 };
 
-const onEdit = (activity: Activity) => {
+const onEdit = (item: DisciplineItem) => {
   isEditing.value = true;
-  editingId.value = activity.id;
+  editingId.value = item.id;
   formData.value = {
-    discipline_id: activity.discipline_id,
-    discipline_item_id: activity.discipline_item_id,
-    description: activity.description,
-    notes: activity.notes || '',
-    frequency: activity.frequency,
-    is_active: activity.is_active,
+    discipline_id: item.discipline_id,
+    name: item.name,
+    method: item.method || '',
+    is_active: item.is_active,
   };
   showDialog.value = true;
 };
@@ -331,29 +273,28 @@ const onEdit = (activity: Activity) => {
 const onSubmit = async () => {
   try {
     if (isEditing.value && editingId.value) {
-      await api.put(`/api/activities/${editingId.value}`, formData.value);
+      await api.put(`/api/discipline-items/${editingId.value}`, formData.value);
       $q.notify({
         type: 'positive',
-        message: 'Activity updated successfully',
+        message: 'Discipline item updated successfully',
         position: 'bottom',
       });
     } else {
-      await api.post('/api/activities', formData.value);
+      await api.post('/api/discipline-items', formData.value);
       $q.notify({
         type: 'positive',
-        message: 'Activity created successfully',
+        message: 'Discipline item created successfully',
         position: 'bottom',
       });
     }
     showDialog.value = false;
     resetForm();
-    await fetchActivityList();
+    await fetchDisciplineItemList();
   } catch (error: unknown) {
     const err = error as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } };
 
-    let errorMessage = 'Failed to save activity';
+    let errorMessage = 'Failed to save discipline item';
 
-    // Check for validation errors
     if (err.response?.data?.errors) {
       const errors = Object.values(err.response.data.errors).flat();
       errorMessage = errors.join(', ');
@@ -369,27 +310,27 @@ const onSubmit = async () => {
   }
 };
 
-const onDelete = (activity: Activity) => {
+const onDelete = (item: DisciplineItem) => {
   $q.dialog({
     title: 'Confirm',
-    message: `Are you sure you want to delete "${activity.description}"?`,
+    message: `Are you sure you want to delete "${item.name}"?`,
     cancel: true,
     persistent: true,
   }).onOk(() => {
     void (async () => {
       try {
-        await api.delete(`/api/activities/${activity.id}`);
+        await api.delete(`/api/discipline-items/${item.id}`);
         $q.notify({
           type: 'positive',
-          message: 'Activity deleted successfully',
+          message: 'Discipline item deleted successfully',
           position: 'bottom',
         });
-        await fetchActivityList();
+        await fetchDisciplineItemList();
       } catch (error: unknown) {
         const err = error as { response?: { data?: { message?: string } } };
         $q.notify({
           type: 'negative',
-          message: err.response?.data?.message || 'Failed to delete activity',
+          message: err.response?.data?.message || 'Failed to delete discipline item',
           position: 'bottom',
         });
       }
@@ -397,39 +338,17 @@ const onDelete = (activity: Activity) => {
   });
 };
 
-// Activity Items modal functions
-const openItemsModal = (activity: Activity) => {
-  selectedActivity.value = activity;
-  showItemsModal.value = true;
-};
-
 const fetchDisciplines = async () => {
   try {
-    const response = await api.get('/api/disciplines', {
-      params: { per_page: -1 },
-    });
+    const response = await api.get('/api/disciplines');
     disciplineOptions.value = response.data.disciplines || response.data.data || [];
   } catch {
     // silently fail - discipline options are non-critical
   }
 };
 
-const fetchDisciplineItems = async () => {
-  try {
-    const response = await api.get('/api/discipline-items');
-    allDisciplineItems.value = response.data.discipline_items || response.data.data || [];
-
-    console.log('Fetched discipline items:', allDisciplineItems.value);
-  } catch {
-    // silently fail - discipline item options are non-critical
-  }
-};
-
 onMounted(() => {
-  void fetchActivityList();
+  void fetchDisciplineItemList();
   void fetchDisciplines();
-  void fetchDisciplineItems();
 });
-
-console.log('ActivityListPage component mounted');
 </script>

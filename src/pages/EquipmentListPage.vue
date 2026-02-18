@@ -2,7 +2,13 @@
   <q-page class="q-pa-md">
     <div class="q-mb-md row justify-between items-center">
       <div class="text-h5">Equipment List</div>
-      <q-btn color="primary" label="Add Equipment" icon="add" @click="onAdd" />
+      <div class="q-gutter-sm">
+        <q-btn icon="download" label="Excel" color="green-7" outline dense :loading="exporting"
+          @click="exportExcel">
+          <q-tooltip>Export to Excel</q-tooltip>
+        </q-btn>
+        <q-btn color="primary" label="Add Equipment" icon="add" @click="onAdd" />
+      </div>
     </div>
 
     <q-table :rows="equipmentList" :columns="columns" row-key="id" :loading="loading" v-model:pagination="pagination"
@@ -98,11 +104,6 @@
       </q-card>
     </q-dialog>
 
-    <!-- Checksheets Full-Screen Modal -->
-    <q-dialog v-model="showChecksheetsModal" maximized>
-      <EquipmentCheckSheets :equipment="selectedEquipment" @close="showChecksheetsModal = false" />
-    </q-dialog>
-
     <!-- Activities Full-Screen Modal -->
     <q-dialog v-model="showActivitiesModal" maximized>
       <EquipmentActivitiesPage :equipment="selectedEquipment" @close="showActivitiesModal = false" />
@@ -113,8 +114,8 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
 import { useQuasar } from 'quasar';
+import { useRouter } from 'vue-router';
 import { api } from 'boot/axios';
-import EquipmentCheckSheets from './EquipmentChecksheetListPage.vue';
 import EquipmentActivitiesPage from './EquipmentActivitiesPage.vue';
 
 interface Equipment {
@@ -168,6 +169,7 @@ interface FormOption {
 }
 
 const $q = useQuasar();
+const router = useRouter();
 
 const columns = [
   {
@@ -264,6 +266,7 @@ const columns = [
 
 const equipmentList = ref<Equipment[]>([]);
 const loading = ref(false);
+const exporting = ref(false);
 const filter = ref('');
 const pagination = ref({
   sortBy: 'created_at',
@@ -299,9 +302,7 @@ const suppliers = ref<FormOption[]>([]);
 const currentLocations = ref<FormOption[]>([]);
 
 // Activities modal state
-const showChecksheetsModal = ref(false);
 const selectedEquipment = ref<Equipment | null>(null);
-
 const showActivitiesModal = ref(false);
 
 // Fetch form options
@@ -552,15 +553,60 @@ const onDelete = (equipment: Equipment) => {
   });
 };
 
-// Activities modal functions
+// Navigation functions
 const openChecksheetsModal = (equipment: Equipment) => {
-  selectedEquipment.value = equipment;
-  showChecksheetsModal.value = true;
+  void router.push(`/equipments/${equipment.id}/checksheets`);
 };
 
 const openActivitiesModal = (equipment: Equipment) => {
   selectedEquipment.value = equipment;
   showActivitiesModal.value = true;
+};
+
+const exportExcel = async () => {
+  exporting.value = true;
+  try {
+    const params: Record<string, string | number | boolean> = {};
+    if (filter.value) params.search = filter.value;
+
+    const response = await api.get('/api/equipments/export', {
+      params,
+      responseType: 'blob',
+    });
+
+    const contentDisposition = response.headers['content-disposition'] as string | undefined;
+    let filename = 'equipments.xlsx';
+    if (contentDisposition) {
+      const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+      if (match?.[1]) {
+        filename = match[1].replace(/['"]/g, '');
+      }
+    }
+
+    const url = window.URL.createObjectURL(new Blob([response.data as BlobPart]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+
+    $q.notify({
+      type: 'positive',
+      message: 'Excel file downloaded successfully',
+      position: 'bottom',
+    });
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { message?: string } } };
+    $q.notify({
+      type: 'negative',
+      message: err.response?.data?.message || 'Failed to export Excel file',
+      position: 'bottom',
+    });
+  } finally {
+    exporting.value = false;
+  }
 };
 
 onMounted(() => {
