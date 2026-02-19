@@ -57,6 +57,8 @@ interface Activity {
   is_assigned?: boolean;
   created_at?: string;
   updated_at?: string;
+  discipline?: { name: string } | null;
+  discipline_item?: { name: string } | null;
 }
 
 interface Props {
@@ -96,6 +98,20 @@ const columns = [
     name: 'description',
     label: 'Description',
     field: 'description',
+    sortable: true,
+    align: 'left' as const,
+  },
+  {
+    name: 'discipline',
+    label: 'Discipline',
+    field: (row: Activity) => row.discipline?.name ?? '-',
+    sortable: true,
+    align: 'left' as const,
+  },
+  {
+    name: 'discipline_item',
+    label: 'Discipline Item',
+    field: (row: Activity) => row.discipline_item?.name ?? '-',
     sortable: true,
     align: 'left' as const,
   },
