@@ -113,17 +113,6 @@ const columns = [
     align: 'center' as const,
   },
   {
-    name: 'created_at',
-    label: 'Created At',
-    field: 'created_at',
-    sortable: true,
-    align: 'center' as const,
-    format: (val: string) => {
-      if (!val) return '';
-      return new Date(val).toLocaleDateString();
-    },
-  },
-  {
     name: 'actions',
     label: 'Actions',
     field: 'actions',

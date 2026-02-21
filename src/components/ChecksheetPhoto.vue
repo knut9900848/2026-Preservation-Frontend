@@ -169,18 +169,15 @@ const hasFilesToUpload = computed(() => {
   return photoGroups.value.some((group) => group.files.length > 0);
 });
 
-const API_BASE_URL = 'http://preservation.test';
-
 const getBaseApiUrl = () => `/api/checksheets/${props.checksheetId}`;
 
 const getPhotoUrl = (url: string) => {
   if (!url) return '';
-  // If already a full URL, return as is
   if (url.startsWith('http://') || url.startsWith('https://')) {
     return url;
   }
-  // Prepend API base URL for relative paths
-  return `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+  const baseURL = api.defaults.baseURL || '';
+  return `${baseURL}${url.startsWith('/') ? '' : '/'}${url}`;
 };
 
 const addGroup = () => {
