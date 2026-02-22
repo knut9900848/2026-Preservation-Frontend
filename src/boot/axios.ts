@@ -1,5 +1,6 @@
 import { boot } from 'quasar/wrappers';
 import axios, { type AxiosInstance } from 'axios';
+import { Platform } from 'quasar';
 
 declare module 'vue' {
   interface ComponentCustomProperties {
@@ -11,7 +12,7 @@ declare module 'vue' {
 // API 기본 URL 설정
 const api = axios.create({
   baseURL: process.env.VITE_API_URL || import.meta.env.VITE_API_URL,
-  withCredentials: true,
+  withCredentials: !Platform.is.capacitor,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',

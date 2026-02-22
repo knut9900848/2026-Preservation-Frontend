@@ -115,17 +115,26 @@ const onSubmit = async () => {
     // 로그인 실패
     let errorMessage = '로그인에 실패했습니다.';
 
-    if (error && typeof error === 'object' && 'response' in error) {
-      const axiosError = error as {
+    if (error && typeof error === 'object') {
+      const err = error as {
+        message?: string;
+        code?: string;
         response?: {
+          status?: number;
           data?: {
             message?: string;
           };
         };
       };
 
-      if (axiosError.response?.data?.message) {
-        errorMessage = axiosError.response.data.message;
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.response?.status) {
+        errorMessage = `서버 오류 (${err.response.status})`;
+      } else if (err.code === 'ERR_NETWORK') {
+        errorMessage = `네트워크 오류 - API: ${api.defaults.baseURL}`;
+      } else if (err.message) {
+        errorMessage = err.message;
       }
     }
 
@@ -133,6 +142,7 @@ const onSubmit = async () => {
       type: 'negative',
       message: errorMessage,
       position: 'bottom',
+      timeout: 10000,
     });
   } finally {
     loading.value = false;
