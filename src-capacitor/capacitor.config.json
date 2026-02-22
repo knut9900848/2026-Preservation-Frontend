@@ -1,0 +1,10 @@
+{
+  "appId": "com.ies.preservation",
+  "appName": "IES Preservation",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https",
+    "url": "http://172.30.1.45:9500",
+    "cleartext": true
+  }
+}

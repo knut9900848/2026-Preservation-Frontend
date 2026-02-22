@@ -7,13 +7,7 @@
         <div class="text-caption text-grey">Preservation Management Overview</div>
       </div>
       <q-space />
-      <q-btn
-        flat
-        round
-        icon="mdi-refresh"
-        :loading="loading"
-        @click="fetchDashboard"
-      >
+      <q-btn flat round icon="mdi-refresh" :loading="loading" @click="fetchDashboard">
         <q-tooltip>Refresh</q-tooltip>
       </q-btn>
     </div>
@@ -96,21 +90,12 @@
     <!-- Checksheet Status Section -->
     <div class="text-subtitle1 text-weight-bold q-mb-md">Checksheet Status</div>
     <div class="row q-col-gutter-md q-mb-lg">
-      <div
-        v-for="status in statusCards"
-        :key="status.key"
-        class="col-6 col-sm-3"
-      >
+      <div v-for="status in statusCards" :key="status.key" class="col-6 col-sm-3">
         <q-card class="status-card" flat bordered>
           <q-card-section class="q-pa-lg">
             <div class="row items-center justify-between q-mb-md">
               <q-icon :name="status.icon" :color="status.color" size="24px" />
-              <q-badge
-                :color="status.color"
-                :label="status.key"
-                outline
-                class="text-weight-medium"
-              />
+              <q-badge :color="status.color" :label="status.key" outline class="text-weight-medium" />
             </div>
             <div class="text-h4 text-weight-bold">
               <template v-if="loading">
@@ -120,15 +105,9 @@
                 {{ (dashboard.checksheet_status[status.key] ?? 0).toLocaleString() }}
               </template>
             </div>
-            <q-linear-progress
-              v-if="!loading && dashboard.checksheet_total > 0"
-              :value="(dashboard.checksheet_status[status.key] ?? 0) / dashboard.checksheet_total"
-              :color="status.color"
-              track-color="grey-3"
-              class="q-mt-md"
-              rounded
-              size="6px"
-            />
+            <q-linear-progress v-if="!loading && dashboard.checksheet_total > 0"
+              :value="(dashboard.checksheet_status[status.key] ?? 0) / dashboard.checksheet_total" :color="status.color"
+              track-color="grey-3" class="q-mt-md" rounded size="6px" />
             <div v-if="!loading && dashboard.checksheet_total > 0" class="text-caption text-grey q-mt-xs">
               {{ getPercentage(dashboard.checksheet_status[status.key] ?? 0) }}% of total
             </div>
@@ -144,13 +123,7 @@
         <div v-if="loading" style="height: 280px;" class="flex flex-center">
           <q-spinner size="40px" color="primary" />
         </div>
-        <apexchart
-          v-else
-          type="bar"
-          height="280"
-          :options="weeklyChartOptions"
-          :series="weeklyChartSeries"
-        />
+        <apexchart v-else type="bar" height="280" :options="weeklyChartOptions" :series="weeklyChartSeries" />
       </q-card-section>
     </q-card>
 
@@ -161,14 +134,11 @@
         <div v-if="loading" class="row q-col-gutter-sm">
           <div class="col"><q-skeleton type="rect" height="32px" /></div>
         </div>
-        <div v-else-if="dashboard.checksheet_total > 0" class="stacked-bar row no-wrap" style="height: 32px; border-radius: 8px; overflow: hidden;">
-          <div
-            v-for="status in statusCards"
-            :key="status.key"
-            :class="`bg-${status.color}`"
+        <div v-else-if="dashboard.checksheet_total > 0" class="stacked-bar row no-wrap"
+          style="height: 32px; border-radius: 8px; overflow: hidden;">
+          <div v-for="status in statusCards" :key="status.key" :class="`bg-${status.color}`"
             :style="{ width: getPercentage(dashboard.checksheet_status[status.key] ?? 0) + '%' }"
-            class="stacked-bar-segment"
-          >
+            class="stacked-bar-segment">
             <q-tooltip>{{ status.key }}: {{ dashboard.checksheet_status[status.key] ?? 0 }}</q-tooltip>
           </div>
         </div>
@@ -206,7 +176,7 @@ interface DashboardData {
   weekly_accepted: WeeklyAccepted[];
 }
 
-const loading = ref(false);
+const loading = ref(true);
 const dashboard = ref<DashboardData>({
   equipment_count: 0,
   checksheet_total: 0,

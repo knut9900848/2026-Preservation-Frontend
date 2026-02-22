@@ -3,7 +3,7 @@
 
 import { defineConfig } from '#q-app/wrappers';
 
-export default defineConfig((/* ctx */) => {
+export default defineConfig((ctx) => {
   return {
     // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
     // preFetch: true,
@@ -43,7 +43,7 @@ export default defineConfig((/* ctx */) => {
         // extendTsConfig (tsConfig) {}
       },
 
-      vueRouterMode: 'history', // available values: 'hash', 'history'
+      vueRouterMode: ctx.modeName === 'capacitor' ? 'hash' : 'history',
       // vueRouterBase,
       // vueDevtools,
       // vueOptionsAPI: false,
