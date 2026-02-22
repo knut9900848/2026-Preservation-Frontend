@@ -69,7 +69,7 @@ export default defineConfig((ctx) => {
       // publicPath: '/',
       // analyze: true,
       env: ctx.modeName === 'capacitor'
-        ? loadEnvFile('.env.capacitor')
+        ? loadEnvFile(ctx.dev ? '.env.capacitor' : '.env.capacitor.production')
         : {},
       // rawDefine: {}
       // ignorePublicFolder: true,
