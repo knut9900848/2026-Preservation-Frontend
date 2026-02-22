@@ -1,7 +1,23 @@
 // Configuration for your app
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file
 
+import { readFileSync, existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { defineConfig } from '#q-app/wrappers';
+
+function loadEnvFile(filename: string): Record<string, string> {
+  const filePath = resolve(process.cwd(), filename);
+  if (!existsSync(filePath)) return {};
+  const content = readFileSync(filePath, 'utf-8');
+  const env: Record<string, string> = {};
+  for (const line of content.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const [key, ...rest] = trimmed.split('=');
+    if (key) env[key.trim()] = rest.join('=').trim();
+  }
+  return env;
+}
 
 export default defineConfig((ctx) => {
   return {
@@ -52,7 +68,9 @@ export default defineConfig((ctx) => {
 
       // publicPath: '/',
       // analyze: true,
-      // env: {},
+      env: ctx.modeName === 'capacitor'
+        ? loadEnvFile('.env.capacitor')
+        : {},
       // rawDefine: {}
       // ignorePublicFolder: true,
       // minify: false,

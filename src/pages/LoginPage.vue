@@ -46,7 +46,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useQuasar } from 'quasar';
+import { Platform, useQuasar } from 'quasar';
 import { api } from 'boot/axios';
 import { useAuthStore } from 'src/stores/auth';
 
@@ -77,20 +77,16 @@ const onSubmit = async () => {
   loading.value = true;
 
   try {
-    // CSRF 쿠키 요청 (Laravel Sanctum)
-    await api.get('/sanctum/csrf-cookie');
+    // CSRF 쿠키 요청 (Laravel Sanctum) - 모바일(Capacitor)에서는 불필요
+    if (!Platform.is.capacitor) {
+      await api.get('/sanctum/csrf-cookie');
+    }
 
     // 로그인 요청
     const response = await api.post('/api/login', {
       email: email.value,
       password: password.value,
     });
-
-    // 로그인 성공
-    console.log('=== Login Response ===');
-    console.log('Full response:', response.data);
-    console.log('Token:', response.data.token);
-    console.log('User:', response.data.user);
 
     $q.notify({
       type: 'positive',
@@ -109,8 +105,6 @@ const onSubmit = async () => {
     // 사용자 정보 저장
     if (response.data.user) {
       authStore.setUser(response.data.user);
-      console.log('User saved to store:', authStore.user);
-      console.log('localStorage user after save:', localStorage.getItem('user'));
     } else {
       console.warn('No user data in response!');
     }

@@ -10,7 +10,7 @@ declare module 'vue' {
 
 // API 기본 URL 설정
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: process.env.VITE_API_URL || import.meta.env.VITE_API_URL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
