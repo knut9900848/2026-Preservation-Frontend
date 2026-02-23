@@ -187,12 +187,11 @@ const fetchSettings = async () => {
       project_code: data.project_code || '',
     };
 
-    const baseURL = api.defaults.baseURL || '';
-    if (data.ies_logo) {
-      iesLogoPreview.value = `${baseURL}/storage/${data.ies_logo}`;
+    if (data.ies_logo_url) {
+      iesLogoPreview.value = data.ies_logo_url;
     }
-    if (data.client_logo) {
-      clientLogoPreview.value = `${baseURL}/storage/${data.client_logo}`;
+    if (data.client_logo_url) {
+      clientLogoPreview.value = data.client_logo_url;
     }
   } catch {
     $q.notify({

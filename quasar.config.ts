@@ -5,6 +5,22 @@ import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { defineConfig } from '#q-app/wrappers';
 
+/**
+ * 프로젝트 루트의 환경변수 파일(.env)을 읽어 key=value 쌍을 파싱하는 함수.
+ *
+ * - 빈 줄과 '#'으로 시작하는 주석 줄은 무시한다.
+ * - 값에 '='가 포함된 경우(예: URL 쿼리스트링)도 올바르게 처리한다.
+ * - 파일이 존재하지 않으면 빈 객체를 반환하므로, 환경변수 파일이 없어도 빌드가 실패하지 않는다.
+ *
+ * 사용처: build.env 설정 (line 71~73)
+ *   - Capacitor(모바일) 빌드 시 개발/프로덕션 환경에 따라
+ *     '.env.capacitor' 또는 '.env.capacitor.production' 파일을 로드하여
+ *     해당 환경변수를 Vite의 define으로 주입한다.
+ *   - 웹 빌드(SPA)에서는 사용되지 않는다.
+ *
+ * @param filename - 프로젝트 루트 기준 환경변수 파일명 (예: '.env.capacitor')
+ * @returns 파싱된 환경변수 key-value 객체
+ */
 function loadEnvFile(filename: string): Record<string, string> {
   const filePath = resolve(process.cwd(), filename);
   if (!existsSync(filePath)) return {};
