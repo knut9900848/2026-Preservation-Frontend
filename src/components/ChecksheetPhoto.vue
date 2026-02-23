@@ -266,11 +266,6 @@ const fetchPhotoGroups = async () => {
       description: group.description || '',
       photos: group.photos || [],
     }));
-
-    // If no groups exist, add an empty one for convenience
-    if (photoGroups.value.length === 0) {
-      addGroup();
-    }
   } catch (error: unknown) {
     const err = error as { response?: { data?: { message?: string } } };
     $q.notify({
@@ -278,11 +273,6 @@ const fetchPhotoGroups = async () => {
       message: err.response?.data?.message || 'Failed to load photo groups',
       position: 'bottom',
     });
-
-    // Add empty group on error
-    if (photoGroups.value.length === 0) {
-      addGroup();
-    }
   }
 };
 
