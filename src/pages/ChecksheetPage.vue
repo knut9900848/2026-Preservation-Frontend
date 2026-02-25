@@ -14,16 +14,13 @@
     <!-- Checksheet Information Grid -->
     <div class="row q-col-gutter-md q-mb-md">
       <div class="col-lg-3 col-md-4 col-sm-6">
-        <q-input label="Project" model-value="" outlined dense readonly />
-      </div>
-      <div class="col-lg-3 col-md-4 col-sm-6">
-        <q-input label="Equipment Name" :model-value="checksheet?.equipment?.name ?? 'N/A'" outlined dense readonly />
+        <q-input label="Equipment Name" :model-value="checksheet?.equipment_name ?? 'N/A'" outlined dense readonly />
       </div>
       <div class="col-lg-3 col-md-4 col-sm-6">
         <q-input label="Activity Code" :model-value="checksheet?.activity_code || 'N/A'" outlined dense readonly />
       </div>
       <div class="col-lg-3 col-md-4 col-sm-6">
-        <q-input label="Tag Number" :model-value="checksheet?.equipment?.tag_no ?? 'N/A'" outlined dense readonly />
+        <q-input label="Tag Number" :model-value="checksheet?.equipment_tag_no ?? 'N/A'" outlined dense readonly />
       </div>
 
       <div class="col-lg-3 col-md-4 col-sm-6">
@@ -189,23 +186,18 @@ const route = useRoute();
 const router = useRouter();
 const $q = useQuasar();
 
-interface Equipment {
-  id?: number;
-  name?: string;
-  tag_no?: string;
-}
-
 interface Checksheet {
   id: number;
   equipment_id: number;
   sheet_number: string;
   activity_code: string;
+  equipment_name?: string;
+  equipment_tag_no?: string;
   current_round?: number;
   frequency?: string;
   status?: string;
   due_date?: string;
   instruction?: string | null;
-  equipment?: Equipment;
   technicians?: User[];
   inspectors?: User[];
 }

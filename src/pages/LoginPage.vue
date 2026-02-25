@@ -57,7 +57,7 @@ const authStore = useAuthStore();
 // 다크모드 설정 적용
 onMounted(() => {
   const savedDarkMode = localStorage.getItem('darkMode');
-  const isDarkMode = savedDarkMode !== null ? savedDarkMode === 'true' : true;
+  const isDarkMode = savedDarkMode !== null ? savedDarkMode === 'true' : false;
   $q.dark.set(isDarkMode);
 });
 

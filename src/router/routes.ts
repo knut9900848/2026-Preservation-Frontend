@@ -18,6 +18,7 @@ const routes: RouteRecordRaw[] = [
       },
       { path: 'checksheets', component: () => import('pages/ChecksheetListPage.vue') },
       { path: 'checksheets/:id', component: () => import('pages/ChecksheetPage.vue') },
+      { path: 'notifications', component: () => import('pages/NotificationListPage.vue') },
       { path: 'setting/general', component: () => import('pages/setting/SettingsPage.vue') },
       { path: 'setting/activities', component: () => import('pages/setting/ActivityListPage.vue') },
       {

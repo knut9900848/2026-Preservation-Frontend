@@ -14,6 +14,62 @@
           <q-tooltip>{{ isDarkMode ? 'Light Mode' : 'Dark Mode' }}</q-tooltip>
         </q-btn>
 
+        <!-- 알림 벨 -->
+        <q-btn flat dense round icon="notifications">
+          <q-badge v-if="notificationStore.unreadCount > 0" color="red" floating>
+            {{ notificationStore.unreadCount }}
+          </q-badge>
+          <q-menu style="min-width: 320px; max-width: 400px;">
+            <q-list>
+              <q-item-label header class="row items-center justify-between">
+                <span class="text-weight-bold">Notifications</span>
+                <q-btn
+                  v-if="notificationStore.notifications.length > 0"
+                  flat dense no-caps size="sm" color="primary"
+                  label="Mark all read"
+                  @click="notificationStore.markAllRead()"
+                />
+              </q-item-label>
+              <q-separator />
+              <div v-if="notificationStore.notifications.length === 0" class="q-pa-md text-center text-grey">
+                No notifications
+              </div>
+              <q-item
+                v-for="n in notificationStore.notifications"
+                :key="n.id"
+                clickable v-close-popup
+                :class="{ 'bg-blue-1': !n.read_at }"
+                @click="handleNotificationClick(n)"
+              >
+                <q-item-section avatar>
+                  <q-icon
+                    :name="getActionIcon(n.data.action)"
+                    :color="getActionColor(n.data.action)"
+                  />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>
+                    <span class="text-weight-medium">{{ n.data.sheet_number }}</span>
+                    {{ getActionLabel(n.data.action) }}
+                  </q-item-label>
+                  <q-item-label caption>
+                    {{ n.data.performed_by?.name ?? '' }} · {{ formatTime(n.created_at) }}
+                  </q-item-label>
+                </q-item-section>
+                <q-item-section side>
+                  <q-badge :color="getActionColor(n.data.action)" :label="getActionLabel(n.data.action)" />
+                </q-item-section>
+              </q-item>
+              <q-separator />
+              <q-item clickable v-close-popup @click="router.push('/notifications')" class="text-center">
+                <q-item-section>
+                  <q-item-label class="text-primary text-weight-medium">View all notifications</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
+        </q-btn>
+
         <q-btn flat dense v-if="authStore.user">
           <div class="row items-center no-wrap">
             <q-icon name="account_circle" size="sm" class="q-mr-xs" />
@@ -185,22 +241,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
 import { useAuthStore } from 'src/stores/auth';
+import { useNotificationStore, type Notification } from 'src/stores/notification';
 import { api } from 'boot/axios';
+import { getEcho } from 'boot/echo';
 
 const leftDrawerOpen = ref(false);
 const authStore = useAuthStore();
+const notificationStore = useNotificationStore();
 const router = useRouter();
 const $q = useQuasar();
 
-// 다크모드 설정 (localStorage에서 불러오기, 기본값은 true - 다크모드)
+// 다크모드 설정 (localStorage에서 불러오기, 기본값은 false - 라이트모드)
 const isDarkMode = ref(
   localStorage.getItem('darkMode') !== null
     ? localStorage.getItem('darkMode') === 'true'
-    : true
+    : false
 );
 
 function toggleLeftDrawer() {
@@ -214,8 +273,80 @@ function toggleDarkMode() {
 }
 
 function handleLogout() {
+  const echo = getEcho();
+  if (echo) {
+    for (const ch of channelNames) {
+      echo.leave(ch);
+    }
+  }
   authStore.logout();
   void router.push('/login');
+}
+
+// 알림 헬퍼 함수
+const actionMap: Record<string, { icon: string; color: string; label: string }> = {
+  completed: { icon: 'mdi-check-circle-outline', color: 'blue', label: 'Completed' },
+  approved: { icon: 'mdi-shield-check-outline', color: 'green', label: 'Approved' },
+  accepted: { icon: 'mdi-star-outline', color: 'amber-9', label: 'Accepted' },
+  rejected: { icon: 'mdi-close-circle-outline', color: 'red', label: 'Rejected' },
+};
+
+function getActionIcon(action: string): string {
+  return actionMap[action]?.icon ?? 'mdi-information-outline';
+}
+
+function getActionColor(action: string): string {
+  return actionMap[action]?.color ?? 'grey';
+}
+
+function getActionLabel(action: string): string {
+  return actionMap[action]?.label ?? action;
+}
+
+function formatTime(dateStr: string): string {
+  const now = new Date();
+  const date = new Date(dateStr);
+  const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return date.toLocaleDateString();
+}
+
+function handleNotificationClick(n: Notification) {
+  void notificationStore.markAsRead(n.id);
+  void router.push(`/checksheets/${n.data.checksheet_id}`);
+}
+
+// Echo 채널 구독
+const channelNames: string[] = [];
+
+function subscribeToChannel() {
+  const echo = getEcho();
+  const roles = authStore.user?.roles;
+  if (!echo || !roles || roles.length === 0) {
+    console.warn('[Echo] Cannot subscribe: echo=', !!echo, 'roles=', roles);
+    return;
+  }
+
+  for (const role of roles) {
+    const ch = `role.${role}`;
+    channelNames.push(ch);
+    console.log('[Echo] Subscribing to private channel:', ch);
+    echo.private(ch).listen('.workflow.changed', (event: Record<string, unknown>) => {
+      console.log('[Echo] Received workflow.changed event:', event);
+      const e = event as { sheet_number?: string; message?: string; action?: string; performed_by?: { name: string } };
+      $q.notify({
+        type: 'info',
+        message: e.message ?? e.sheet_number ?? '',
+        caption: `by ${e.performed_by?.name ?? ''}`,
+        position: 'top-right',
+        timeout: 5000,
+        icon: getActionIcon(e.action ?? ''),
+      });
+      void notificationStore.onNewEvent();
+    });
+  }
 }
 
 // 컴포넌트 마운트 시 다크모드 설정 및 사용자 정보 가져오기
@@ -238,6 +369,36 @@ onMounted(async () => {
       // 토큰이 유효하지 않으면 로그아웃
       authStore.logout();
       void router.push('/login');
+      return; // 로그아웃 시 채널 구독 불필요
+    }
+  }
+
+  // roles가 없으면 API에서 다시 가져오기 시도
+  if (authStore.user && (!authStore.user.roles || authStore.user.roles.length === 0)) {
+    try {
+      const response = await api.get('/api/user');
+      if (response.data.user) {
+        authStore.setUser(response.data.user);
+      }
+    } catch {
+      // 무시
+    }
+  }
+
+  // 알림 초기 조회
+  void notificationStore.fetchNotifications();
+  void notificationStore.fetchUnreadCount();
+
+  // Echo 채널 구독
+  console.log('[Echo] About to subscribe, user:', authStore.user);
+  subscribeToChannel();
+});
+
+onUnmounted(() => {
+  const echo = getEcho();
+  if (echo) {
+    for (const ch of channelNames) {
+      echo.leave(ch);
     }
   }
 });

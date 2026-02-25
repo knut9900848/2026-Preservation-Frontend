@@ -155,9 +155,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import VueApexCharts from 'vue3-apexcharts';
 import { api } from 'boot/axios';
+import { useNotificationStore } from 'src/stores/notification';
 
 const apexchart = VueApexCharts;
 
@@ -247,6 +248,18 @@ async function fetchDashboard() {
     loading.value = false;
   }
 }
+
+const notificationStore = useNotificationStore();
+
+// 새 알림 발생 시 대시보드 자동 새로고침
+watch(
+  () => notificationStore.notifications.length,
+  (newLen, oldLen) => {
+    if (newLen > oldLen) {
+      void fetchDashboard();
+    }
+  },
+);
 
 onMounted(() => {
   void fetchDashboard();

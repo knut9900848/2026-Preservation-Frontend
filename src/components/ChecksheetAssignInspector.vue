@@ -67,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { api } from 'boot/axios';
 
@@ -94,6 +94,11 @@ const emit = defineEmits<{
 const $q = useQuasar();
 
 const assignedUsers = ref<User[]>([...props.initialUsers]);
+
+watch(() => props.initialUsers, (newUsers) => {
+  assignedUsers.value = [...newUsers];
+});
+
 const allUsers = ref<User[]>([]);
 const loadingUsers = ref(false);
 const saving = ref(false);

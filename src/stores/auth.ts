@@ -9,7 +9,7 @@ interface User {
   date_of_birth?: string | null;
   job_start_date?: string | null;
   job_end_date?: string | null;
-  user_type: string;
+  roles?: string[];
   is_active?: boolean;
   avatar: string | null;
   created_at: string;
