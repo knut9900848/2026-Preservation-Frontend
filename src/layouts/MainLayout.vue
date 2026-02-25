@@ -241,7 +241,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
 import { useAuthStore } from 'src/stores/auth';
@@ -389,10 +389,21 @@ onMounted(async () => {
   void notificationStore.fetchNotifications();
   void notificationStore.fetchUnreadCount();
 
-  // Echo 채널 구독
-  console.log('[Echo] About to subscribe, user:', authStore.user);
-  subscribeToChannel();
+  // roles가 이미 있으면 바로 구독
+  if (authStore.user?.roles && authStore.user.roles.length > 0) {
+    subscribeToChannel();
+  }
 });
+
+// roles가 나중에 로드되면 구독
+watch(
+  () => authStore.user?.roles,
+  (roles) => {
+    if (roles && roles.length > 0 && channelNames.length === 0) {
+      subscribeToChannel();
+    }
+  },
+);
 
 onUnmounted(() => {
   const echo = getEcho();
